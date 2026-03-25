@@ -12,3 +12,4 @@ class User(Base):
     password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True),server_default=func.now())
+    posts = relationship("post", back_populates="owner", cascade="all,delete")

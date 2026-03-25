@@ -13,3 +13,4 @@ class Post(Base):
     owner_id = Column(Integer ,ForeignKey("users.id"),nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner = relationship("User", back_populates="posts")
+    comments=relationship("Comment",back_populates="post",cascade="all, delete")
