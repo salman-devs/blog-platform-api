@@ -71,3 +71,19 @@ def update_post(post_id: int, updated_post: PostUpdate, db: Session = Depends(ge
     db.refresh(post)
 
     return post
+
+@router.delete("/{post_id}")
+def delete_post(post_id: int, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    
+    if post.owner_id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    db.delete(post)
+    db.commit()
+
+    return {"message": "Post deleted successfully"}
