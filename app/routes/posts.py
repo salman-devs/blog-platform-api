@@ -24,9 +24,22 @@ def create_post(post: PostCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[PostResponse])
-def get_posts(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
+def get_posts(
+    page: int = 1,
+    limit: int = 10,
+    search: str = "",
+    db: Session = Depends(get_db)
+):
     offset = (page - 1) * limit
 
-    posts = db.query(Post).offset(offset).limit(limit).all()
+    query = db.query(Post)
+
+    if search:
+        query = query.filter(
+            Post.title.ilike(f"%{search}%") |
+            Post.content.ilike(f"%{search}%")
+        )
+
+    posts = query.offset(offset).limit(limit).all()
 
     return posts
