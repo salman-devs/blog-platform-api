@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Post
-from app.schemas.post import PostCreate, PostResponse
+from app.schemas.post import PostCreate, PostResponse, PostUpdate
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
@@ -50,5 +50,24 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
 
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+
+    return post
+
+@router.put("/{post_id}", response_model=PostResponse)
+def update_post(post_id: int, updated_post: PostUpdate, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    
+    if post.owner_id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    post.title = updated_post.title
+    post.content = updated_post.content
+
+    db.commit()
+    db.refresh(post)
 
     return post
