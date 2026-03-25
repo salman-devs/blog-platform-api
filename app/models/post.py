@@ -14,3 +14,4 @@ class Post(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner = relationship("User", back_populates="posts")
     comments=relationship("Comment",back_populates="post",cascade="all, delete")
+    liked_by = relationship("User", secondary="likes", back_populates="liked_posts")
