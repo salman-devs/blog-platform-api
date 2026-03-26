@@ -21,3 +21,9 @@ def create_comment(comment: CommentCreate, db: Session = Depends(get_db)):
     db.refresh(new_comment)
 
     return new_comment
+
+@router.get("/post/{post_id}", response_model=list[CommentResponse])
+def get_comments_by_post(post_id: int, db: Session = Depends(get_db)):
+    comments = db.query(Comment).filter(Comment.post_id == post_id).all()
+
+    return comments
