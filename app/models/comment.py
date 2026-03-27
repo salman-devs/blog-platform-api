@@ -13,5 +13,5 @@ class Comment(Base):
     post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User", back_populates="comments")
-    post = relationship("posts", back_populates="comments")
+    post = relationship("Post", back_populates="comments")
     

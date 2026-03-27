@@ -2,18 +2,24 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Comment
+from app.models import Comment,User
 from app.schemas.comment import CommentCreate, CommentResponse
+from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/comments", tags=["Comments"])
 
 
 @router.post("/", response_model=CommentResponse)
-def create_comment(comment: CommentCreate, db: Session = Depends(get_db)):
+def create_comment(
+    comment: CommentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+
+):
     new_comment = Comment(
         content=comment.content,
         post_id=comment.post_id,
-        user_id=1  
+        user_id=current_user.id  
     )
 
     db.add(new_comment)
@@ -29,13 +35,17 @@ def get_comments_by_post(post_id: int, db: Session = Depends(get_db)):
     return comments
 
 @router.delete("/{comment_id}")
-def delete_comment(comment_id: int, db: Session = Depends(get_db)):
+def delete_comment(
+    comment_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
 
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
     
-    if comment.user_id != 1:
+    if comment.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
     db.delete(comment)
