@@ -2,18 +2,23 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Post
+from app.dependencies.auth import get_current_user
+from app.models import Post,User
 from app.schemas.post import PostCreate, PostResponse, PostUpdate
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 @router.post("/", response_model=PostResponse)
-def create_post(post: PostCreate, db: Session = Depends(get_db)):
+def create_post(
+    post: PostCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     new_post = Post(
         title=post.title,
         content=post.content,
-        owner_id=1 
+        owner_id=current_user.id
     )
 
     db.add(new_post)
@@ -54,14 +59,19 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     return post
 
 @router.put("/{post_id}", response_model=PostResponse)
-def update_post(post_id: int, updated_post: PostUpdate, db: Session = Depends(get_db)):
+def update_post(
+    post_id: int,
+    updated_post: PostUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     post = db.query(Post).filter(Post.id == post_id).first()
 
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
     
-    if post.owner_id != 1:
+    if post.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
     post.title = updated_post.title
@@ -73,14 +83,18 @@ def update_post(post_id: int, updated_post: PostUpdate, db: Session = Depends(ge
     return post
 
 @router.delete("/{post_id}")
-def delete_post(post_id: int, db: Session = Depends(get_db)):
+def delete_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     post = db.query(Post).filter(Post.id == post_id).first()
 
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
     
-    if post.owner_id != 1:
+    if post.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
     db.delete(post)
