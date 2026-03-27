@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship 
 from app.database import Base
+from app.models.like import likes
 
 
 class Post(Base):
@@ -14,4 +15,4 @@ class Post(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner = relationship("User", back_populates="posts")
     comments=relationship("Comment",back_populates="post",cascade="all, delete")
-    liked_by = relationship("User", secondary="likes", back_populates="liked_posts")
+    liked_by = relationship("User", secondary=likes, back_populates="liked_posts")

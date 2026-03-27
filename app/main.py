@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.database import engine, Base
 from app.models import User,Post,Comment
-from app.routes import posts,comments
+from app.routes import posts,comments,likes,auth
 
 app=FastAPI()
 
@@ -14,3 +14,5 @@ def root():
 
 app.include_router(posts.router)
 app.include_router(comments.router)
+app.include_router(likes.router)
+app.include_router(auth.router)
