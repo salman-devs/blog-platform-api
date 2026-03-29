@@ -1,14 +1,20 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Optional
 
 
 class PostBase(BaseModel):
-    title: str
-    content: str
+    title: str = Field(min_length=1, max_length=255)
+    content: str = Field(min_length=1, max_length=5000)
 
 
 class PostCreate(PostBase):
     pass
+
+
+class PostUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
 
 
 class PostResponse(PostBase):
@@ -18,7 +24,3 @@ class PostResponse(PostBase):
 
     class Config:
         from_attributes = True
-
-class PostUpdate(BaseModel):
-    title: str
-    content: str
