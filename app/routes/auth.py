@@ -1,14 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from jose import jwt, JWTError
+from pydantic import BaseModel
 
 from app.database import get_db
 from app.models import User
 from app.schemas.auth import UserSignup, UserLogin, TokenResponse
-from app.utils.hashing import hash_password, verify_password
-from app.utils.auth import create_access_token
 from app.schemas.user import UserResponse
+from app.utils.hashing import hash_password, verify_password
+from app.utils.auth import (
+    create_access_token,
+    create_refresh_token,
+    SECRET_KEY,
+    ALGORITHM
+)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
 
 
 @router.post("/signup", response_model=UserResponse)
@@ -31,6 +39,7 @@ def signup(user: UserSignup, db: Session = Depends(get_db)):
     return new_user
 
 
+
 @router.post("/login", response_model=TokenResponse)
 def login(user: UserLogin, db: Session = Depends(get_db)):
     email = user.email.lower()
@@ -40,9 +49,37 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = create_access_token({"sub": str(db_user.id)})
+    access_token = create_access_token({"sub": str(db_user.id)})
+    refresh_token = create_refresh_token({"sub": str(db_user.id)})
 
     return {
-        "access_token": token,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer"
     }
+
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+@router.post("/refresh")
+def refresh_token(data: RefreshRequest):
+    try:
+        payload = jwt.decode(data.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+        new_access_token = create_access_token({"sub": user_id})
+
+        return {
+            "access_token": new_access_token,
+            "token_type": "bearer"
+        }
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    
