@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -28,19 +28,14 @@ def create_post(
     return new_post
 
 
-@router.get("/", response_model=list[PostResponse])
+@router.get("/")
 def get_posts(
-    page: int = 1,
-    limit: int = 10,
-    search: str = "",
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=50),
+    search: str = Query("", max_length=100),
     db: Session = Depends(get_db)
 ):
-    if page < 1:
-        page = 1
-    if limit > 50:
-        limit = 50
-
-    offset = (page - 1) * limit
+    skip = (page - 1) * limit
 
     query = db.query(Post)
 
@@ -50,15 +45,26 @@ def get_posts(
             Post.content.ilike(f"%{search}%")
         )
 
-    query = query.order_by(Post.created_at.desc())
+    total = query.count()
 
-    posts = query.offset(offset).limit(limit).all()
+    posts = (
+        query
+        .order_by(Post.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
-    return posts
+    return {
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "data": posts
+    }
 
 
 @router.get("/{post_id}", response_model=PostResponse)
-def get_post(post_id: int = Path(gt=0), db: Session = Depends(get_db)):
+def get_post(post_id: int = Path(..., gt=0), db: Session = Depends(get_db)):
     post = db.query(Post).filter(Post.id == post_id).first()
 
     if not post:
@@ -69,7 +75,7 @@ def get_post(post_id: int = Path(gt=0), db: Session = Depends(get_db)):
 
 @router.put("/{post_id}", response_model=PostResponse)
 def update_post(
-    post_id: int = Path(gt=0),
+    post_id: int = Path(..., gt=0),
     updated_post: PostUpdate = ...,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -96,7 +102,7 @@ def update_post(
 
 @router.delete("/{post_id}")
 def delete_post(
-    post_id: int = Path(gt=0),
+    post_id: int = Path(..., gt=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
