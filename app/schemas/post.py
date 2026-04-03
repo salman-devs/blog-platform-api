@@ -27,3 +27,9 @@ class PostResponse(PostBase):
 
     class Config:
         from_attributes = True
+
+class PostListResponse(BaseModel):
+    total: int
+    page: int
+    limit: int
+    data: list[PostResponse]

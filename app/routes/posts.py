@@ -4,13 +4,13 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models import User
-from app.schemas.post import PostCreate, PostResponse, PostUpdate
+from app.schemas.post import PostCreate, PostResponse, PostUpdate, PostListResponse
 from app.services import post_service
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
-@router.post("/", response_model=PostResponse)
+@router.post("/", response_model=PostResponse,status_code=201)
 def create_post(
     post: PostCreate,
     db: Session = Depends(get_db),
@@ -19,7 +19,7 @@ def create_post(
     return post_service.create_post(db, current_user.id, post)
 
 
-@router.get("/")
+@router.get("/",response_model=PostListResponse)
 def get_posts(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),
