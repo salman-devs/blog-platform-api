@@ -18,10 +18,9 @@ from app.utils.auth import (
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-
 @router.post("/signup", response_model=UserResponse)
 def signup(user: UserSignup, db: Session = Depends(get_db)):
-    email = user.email.lower()
+    email = user.email.strip().lower() 
 
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
@@ -39,18 +38,24 @@ def signup(user: UserSignup, db: Session = Depends(get_db)):
     return new_user
 
 
-
 @router.post("/login", response_model=TokenResponse)
 def login(user: UserLogin, db: Session = Depends(get_db)):
-    email = user.email.lower()
+    email = user.email.strip().lower()  
 
     db_user = db.query(User).filter(User.email == email).first()
 
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    access_token = create_access_token({"sub": str(db_user.id)})
-    refresh_token = create_refresh_token({"sub": str(db_user.id)})
+    access_token = create_access_token({
+        "sub": str(db_user.id),
+        "type": "access"  
+    })
+
+    refresh_token = create_refresh_token({
+        "sub": str(db_user.id),
+        "type": "refresh"  
+    })
 
     return {
         "access_token": access_token,
@@ -59,21 +64,28 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     }
 
 
-
 class RefreshRequest(BaseModel):
     refresh_token: str
 
 
-@router.post("/refresh")
+@router.post("/refresh", response_model=TokenResponse)  # FIXED
 def refresh_token(data: RefreshRequest):
     try:
         payload = jwt.decode(data.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+
+
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid token type")
+
         user_id = payload.get("sub")
 
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-        new_access_token = create_access_token({"sub": user_id})
+        new_access_token = create_access_token({
+            "sub": user_id,
+            "type": "access"   
+        })
 
         return {
             "access_token": new_access_token,
@@ -81,5 +93,4 @@ def refresh_token(data: RefreshRequest):
         }
 
     except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-    
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
