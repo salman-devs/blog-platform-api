@@ -19,7 +19,12 @@ class Post(Base):
         index=True
     )
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True
+    )
 
     owner = relationship("User", back_populates="posts")
 
@@ -34,3 +39,7 @@ class Post(Base):
         secondary=likes,
         back_populates="liked_posts"
     )
+
+    def __repr__(self):
+        return f"<Post id={self.id} title={self.title}>"
+    
