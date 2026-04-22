@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.database import get_db
 from app.models import User
@@ -10,29 +11,40 @@ from app.services import comment_service
 router = APIRouter(prefix="/comments", tags=["Comments"])
 
 
-@router.post("/", response_model=CommentResponse)
+@router.post("/{post_id}", response_model=CommentResponse)
 def create_comment(
-    comment: CommentCreate,
+    post_id: int = Path(..., gt=0),
+    comment: CommentCreate = ...,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return comment_service.create_comment(db, current_user.id, comment)
+    return comment_service.create_comment(db, current_user, post_id, comment)
 
 
-@router.get("/post/{post_id}", response_model=list[CommentResponse])
+@router.get("/post/{post_id}", response_model=List[CommentResponse])
 def get_comments_by_post(
-    post_id: int = Path(gt=0),
-    limit: int = Query(10, ge=1, le=50),  
+    post_id: int = Path(..., gt=0),
+    limit: int = Query(10, ge=1, le=50),
     skip: int = Query(0, ge=0),
     db: Session = Depends(get_db)
 ):
     return comment_service.get_comments_by_post(db, post_id, skip, limit)
 
 
-@router.delete("/{comment_id}")
-def delete_comment(
-    comment_id: int = Path(gt=0),
+@router.put("/{comment_id}", response_model=CommentResponse)
+def update_comment(
+    comment_id: int = Path(..., gt=0),
+    updated_comment: CommentCreate = ...,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return comment_service.delete_comment(db, comment_id, current_user.id)
+    return comment_service.update_comment(db, comment_id, current_user, updated_comment)
+
+
+@router.delete("/{comment_id}")
+def delete_comment(
+    comment_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return comment_service.delete_comment(db, comment_id, current_user)
