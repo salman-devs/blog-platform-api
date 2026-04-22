@@ -41,8 +41,8 @@ def get_post(
 
 @router.put("/{post_id}", response_model=PostResponse)
 def update_post(
-    post_id: int = Path(..., gt=0),
     updated_post : PostUpdate,
+    post_id: int = Path(..., gt=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
