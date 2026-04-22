@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
@@ -10,7 +11,7 @@ from app.services import post_service
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
-@router.post("/", response_model=PostResponse,status_code=201)
+@router.post("/", response_model=PostResponse, status_code=201)
 def create_post(
     post: PostCreate,
     db: Session = Depends(get_db),
@@ -19,14 +20,15 @@ def create_post(
     return post_service.create_post(db, current_user.id, post)
 
 
-@router.get("/",response_model=PostListResponse)
+@router.get("/", response_model=PostListResponse)
 def get_posts(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),
-    search: str = Query("", max_length=100),
+    search: Optional[str] = Query(None),
+    user_id: Optional[int] = Query(None, gt=0),
     db: Session = Depends(get_db)
 ):
-    return post_service.get_posts(db, page, limit, search)
+    return post_service.get_posts(db, page, limit, search, user_id)
 
 
 @router.get("/{post_id}", response_model=PostResponse)
@@ -40,7 +42,7 @@ def get_post(
 @router.put("/{post_id}", response_model=PostResponse)
 def update_post(
     post_id: int = Path(..., gt=0),
-    updated_post: PostUpdate = ...,
+    updated_post : PostUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):

@@ -16,20 +16,31 @@ def create_post(db: Session, user_id: int, post_data):
 
     return new_post
 
+def get_posts(
+    db: Session,
+    page: int = 1,
+    limit: int = 10,
+    search: str = None,
+    user_id: int = None
+):
 
-def get_posts(db: Session, page: int, limit: int, search: str):
+    limit = min(limit, 50)
+
     skip = (page - 1) * limit
-
     query = db.query(Post)
-
+    
     if search:
         query = query.filter(
             Post.title.ilike(f"%{search}%") |
             Post.content.ilike(f"%{search}%")
         )
+    
+    if user_id:
+        query = query.filter(Post.owner_id == user_id)
 
+    
     total = query.count()
-
+    
     posts = (
         query
         .order_by(Post.created_at.desc())
@@ -61,6 +72,7 @@ def update_post(db: Session, post_id: int, user_id: int, updated_post):
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
+    
     if post.owner_id != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
