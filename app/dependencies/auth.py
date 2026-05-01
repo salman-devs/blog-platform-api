@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
-from app.core.config import settings   
+from app.core.config import settings
+from app.utils.auth import ALGORITHM   
 
 ALGORITHM = "HS256"
 

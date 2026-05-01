@@ -1,16 +1,18 @@
 from fastapi import FastAPI
 from app.database import engine, Base
-from app.routes import posts ,comments ,likes ,auth , bookmarks
+from app.routes import posts, comments, likes, auth, bookmarks
 
-app=FastAPI(
+app = FastAPI(
     title="Blog API",
-    description="A full-featured blog backed with auth, posts, comments, and likes",
+    description="A full-featured blog backend with auth, posts, comments, and likes",
     version="1.0.0"
 )
 
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 @app.get("/")
-
 def root():
     return {"message": "Blog API running"}
 
@@ -19,4 +21,3 @@ app.include_router(comments.router, prefix="/comments", tags=["Comments"])
 app.include_router(likes.router, prefix="/likes", tags=["Likes"])
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(bookmarks.router, prefix="/bookmarks", tags=["Bookmarks"])
-
