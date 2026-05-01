@@ -23,7 +23,7 @@ def get_posts(
     search: str = None,
     user_id: int = None
 ):
-
+    page = max(page, 1)
     limit = min(limit, 50)
 
     skip = (page - 1) * limit

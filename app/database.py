@@ -8,7 +8,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is not set in environment variables")
+    raise RuntimeError("DATABASE_URL missing. Check .env file. ")
 
 engine = create_engine(
     DATABASE_URL,
@@ -22,6 +22,7 @@ SessionLocal = sessionmaker(
     autoflush=False,
     autocommit=False,
     bind=engine
+    expire_on_commit = False
 )
 
 Base=declarative_base()
