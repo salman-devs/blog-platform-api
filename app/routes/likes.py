@@ -12,7 +12,7 @@ router = APIRouter(prefix="/likes", tags=["Likes"])
 
 @router.post("/{post_id}", response_model=LikeResponse)
 def toggle_like(
-    post_id: int = Path(gt=0),
+    post_id: int = Path(..., gt=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):

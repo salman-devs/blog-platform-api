@@ -7,7 +7,7 @@ from app.schemas.auth import UserSignup, UserLogin, TokenResponse, AccessTokenRe
 from app.schemas.user import UserResponse
 from app.services import auth_service
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(tags=["Auth"])
 
 
 class RefreshRequest(BaseModel):
