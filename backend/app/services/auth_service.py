@@ -54,9 +54,10 @@ def login_user(user, db: Session):
         "token_type": "bearer"
     }
 
-def refresh_access_token(refresh_token: str):
+def refresh_access_token(refresh_token: str, db: Session):
     try:
         payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+
 
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="Invalid token type")
@@ -65,7 +66,12 @@ def refresh_access_token(refresh_token: str):
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-        new_access_token = create_access_token({"sub": user_id})
+        new_access_token = create_access_token(
+            {
+                "sub": user_id,
+                "type": "access"
+            }
+        )
 
         return {
             "access_token": new_access_token,
