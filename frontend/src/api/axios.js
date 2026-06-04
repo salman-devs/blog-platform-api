@@ -1,7 +1,13 @@
 import axios from "axios";
 
+// In dev, Vite proxies /api → localhost:8000
+// In production (Render), VITE_API_URL is set to the backend service URL
+const baseURL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : "/api";
+
 const api = axios.create({
-  baseURL: "/api",
+  baseURL,
 });
 
 // Attach access token to every request
@@ -30,7 +36,7 @@ api.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post("/api/auth/refresh", {
+        const { data } = await axios.post(`${baseURL}/auth/refresh`, {
           refresh_token: refreshToken,
         });
         localStorage.setItem("access_token", data.access_token);
