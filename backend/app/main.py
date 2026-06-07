@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routes import posts, comments, likes, auth, bookmarks
 
+from app.models import user, post, comment, like, bookmark
+
 app = FastAPI(
     title="Blog API",
     description="A full-featured blog backend with auth, posts, comments, and likes",
@@ -16,6 +18,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def root():
