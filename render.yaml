@@ -33,10 +33,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          name: blog-backend
-          type: web
-          property: host
+        value: https://blog-backend.onrender.com
     routes:
       - type: rewrite
         source: /*

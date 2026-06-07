@@ -54,7 +54,7 @@ def login_user(user, db: Session):
         "token_type": "bearer"
     }
 
-def refresh_access_token(refresh_token: str, db: Session):
+def refresh_access_token(refresh_token: str):
     try:
         payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[ALGORITHM])
 

@@ -13,8 +13,8 @@ app = FastAPI(
 def root():
     return {"message": "Blog API running"}
 
-app.include_router(posts.router, prefix="/posts", tags=["Posts"])
-app.include_router(comments.router, prefix="/comments", tags=["Comments"])
-app.include_router(likes.router, prefix="/likes", tags=["Likes"])
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
-app.include_router(bookmarks.router, prefix="/bookmarks", tags=["Bookmarks"])
+app.include_router(posts.router, prefix="/api/posts", tags=["Posts"])
+app.include_router(comments.router, prefix="/api/comments", tags=["Comments"])
+app.include_router(likes.router, prefix="/api/likes", tags=["Likes"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(bookmarks.router, prefix="/api/bookmarks", tags=["Bookmarks"])
